@@ -4,6 +4,7 @@
 <head>
 	<title>TV Guide</title>
 	<link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+	<link rel="stylesheet" href="nwjs-tvguide.css">
 	<script src="./angular.js"></script>
 	<script>
 		var $gs;
@@ -67,8 +68,19 @@
 		};
 		fetch(options, function (res, resp, options) {
 			$gs.channels = JSON.parse(resp);
+			$gs.aChannels = [];
+			for (var i = 0; i < $gs.channels.UserChannels.length; i++) {
+				$gs.aChannels[$gs.channels.UserChannels[i].Id] = i;
+				$gs.aChannels[i] = $gs.channels.UserChannels[i].Id;
+			};
 			fetchChannel();
 		});
+
+		function setViewingNow(use, status) {
+			use.parentNode.parentNode.classList.add(status || "btn-success");
+			use.scrollIntoView();
+			window.scrollBy(0, -20);
+		}
 
 		var checkCurrent;
 
@@ -77,19 +89,28 @@
 			var now = new Date();
 			now = parseFloat(now.getHours() + "." + now.getMinutes());
 			var i = 0;
+			var amPm = 0;
 			var times = document.querySelectorAll('em');
 			[].forEach.call(times, function (e) {
-				var time = parseFloat(e.innerText.replace(":", "."));
-				e.parentNode.parentNode.style.backgroundColor = "transparent";
+				var temp = e.innerText.split(":");
+				if (temp[0] >= 12) {
+					amPm = 24;
+				};
+				temp[0] = (temp[0].substr(0, 1) === "0") ? parseInt(temp[0]) + amPm : parseInt(temp[0])
+				var time = parseFloat(temp[0] + "." + temp[1]);
+				e.parentNode.parentNode.classList.remove("btn-success", "btn-warning");
+				e.parentNode.parentNode.setAttribute("viewingNow", 0);
 				if (time >= now && !bFound) {
 					var use = times[i - 1];
-					use.parentNode.parentNode.style.backgroundColor = "rgba(0,200,0,.7)";
-					use.scrollIntoView();
-					window.scrollBy(0, -20);
+					setViewingNow(use);
 					bFound = true;
 				};
 				i++;
 			});
+			if (!bFound) {
+				setViewingNow(times[times.length - 1], "btn-warning");
+			}
+			$gs.noOfChannels = i - 1;
 		}
 
 		function fetchChannel() {
@@ -102,21 +123,6 @@
 			});
 		}
 	</script>
-	<style>
-		.jumbotron {
-			padding: 5px;
-			position: fixed;
-			width: 100%;
-			z-index: 10;
-			bottom: -30px;
-			left: 0;
-		}
-		
-		body {
-			padding: 0 5px 185px 5px;
-		}
-	</style>
-
 	<script>
 		// https://github.com/nwjs/nw.js/wiki/Window-menu
 		var gui = require('nw.gui');
@@ -125,6 +131,30 @@
 		});
 		mb.createMacBuiltin("nwjs-tvguide");
 		gui.Window.get().menu = mb;
+
+
+		/*********** Left and right arrow switch between channels START  ***********/
+		/*********** SHO: 09/02/2015 22.19  ***********/
+		window.addEventListener("keydown", function (e) {
+			var keyCode = e.keyCode || e.which;
+			var iCurrentChannel = $gs.aChannels[$gs.selectedChannel];
+
+			switch (keyCode) {
+			case 37:
+				// left
+				iCurrentChannel--;
+				iCurrentChannel = (iCurrentChannel < 0) ? $gs.noOfChannels : iCurrentChannel;
+				break;
+			case 39:
+				// right
+				iCurrentChannel++;
+				iCurrentChannel = (iCurrentChannel >= $gs.noOfChannels) ? 0 : iCurrentChannel;
+				break;
+			}
+			$gs.selectedChannel = $gs.aChannels[iCurrentChannel];
+			$gs.update();
+		});
+		/*********** Left and right arrow switch between channels END  ***********/
 	</script>
 </head>
 
@@ -134,8 +164,9 @@
 
 		<div class="jumbotron">
 			<div class="container">
-				<h4><select ng-model="selectedChannel" ng-options="opt.Id as opt.Name for opt in channels.UserChannels" ng-change="update()" class="input-lg">
+				<h4><select ng-model="selectedChannel" ng-options="opt.Id as ($count+' '+opt.Name) for opt in channels.UserChannels" ng-change="update()" class="input-lg">
 		</select><small class="hidden-xs"> - Fetched using node.js in node-webkit</small> (<a href="https://github.com/netsi1964/nwjs-tvguide">nwjs-tvguide on github</a>)</h4>
+				<code>Use left and right keys to goto previous and next channel.</code>
 			</div>
 		</div>
 
