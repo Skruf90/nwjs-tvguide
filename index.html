@@ -90,7 +90,7 @@
 			now = parseFloat(now.getHours() + "." + now.getMinutes());
 			var i = 0;
 			var amPm = 0;
-			var times = document.querySelectorAll('em');
+			var times = document.querySelectorAll('.startTime');
 			[].forEach.call(times, function (e) {
 				var temp = e.innerText.split(":");
 				if (temp[0] >= 12) {
@@ -98,12 +98,16 @@
 				};
 				temp[0] = (temp[0].substr(0, 1) === "0") ? parseInt(temp[0]) + amPm : parseInt(temp[0])
 				var time = parseFloat(temp[0] + "." + temp[1]);
-				e.parentNode.parentNode.classList.remove("btn-success", "btn-warning");
+				e.parentNode.parentNode.classList.remove("btn-success", "btn-warning", "text-muted");
 				e.parentNode.parentNode.setAttribute("viewingNow", 0);
-				if (time >= now && !bFound) {
+				if (!bFound) {
 					var use = times[i - 1];
-					setViewingNow(use);
-					bFound = true;
+					if (time >= now) {
+						setViewingNow(use);
+						bFound = true;
+					} else {
+						setViewingNow(times[i], "text-muted");
+					}
 				};
 				i++;
 			});
@@ -138,7 +142,7 @@
 		window.addEventListener("keydown", function (e) {
 			var keyCode = e.keyCode || e.which;
 			var iCurrentChannel = $gs.aChannels[$gs.selectedChannel];
-
+			var movement = true;
 			switch (keyCode) {
 			case 37:
 				// left
@@ -150,9 +154,15 @@
 				iCurrentChannel++;
 				iCurrentChannel = (iCurrentChannel >= $gs.noOfChannels) ? 0 : iCurrentChannel;
 				break;
+			default:
+				movement = false;
+				break;
 			}
-			$gs.selectedChannel = $gs.aChannels[iCurrentChannel];
-			$gs.update();
+
+			if (movement) {
+				$gs.selectedChannel = $gs.aChannels[iCurrentChannel];
+				$gs.update();
+			}
 		});
 		/*********** Left and right arrow switch between channels END  ***********/
 	</script>
@@ -165,19 +175,21 @@
 		<div class="jumbotron">
 			<div class="container">
 				<h4><select ng-model="selectedChannel" ng-options="opt.Id as ($count+' '+opt.Name) for opt in channels.UserChannels" ng-change="update()" class="input-lg">
-		</select><small class="hidden-xs"> - Fetched using node.js in node-webkit</small> (<a href="https://github.com/netsi1964/nwjs-tvguide">nwjs-tvguide on github</a>)</h4>
+		</select>(<a href="https://github.com/netsi1964/nwjs-tvguide">nwjs-tvguide on github</a>)</h4>
 				<code>Use left and right keys to goto previous and next channel.</code>
 			</div>
 		</div>
 
 		<div ng-repeat="ts in dr.TimeSection">
-			<div class="col-md-12 col-xs-12" ng-repeat="a in ts.Programs">
-				<div class="col-xs-12">
-					<h6> <em>{{a.FormattedStartTime}}</em>: {{a.Title}} <span ng-show="a.Title!==a.OriginalTitle">(Org:{{a.OriginalTitle}})</span> <small>{{a.Category}}</small></h6>
+			<div class="col-md-12 col-xs-12" ng-repeat="a in ts.Programs" xs <div class="col-xs-12">
+				<div class="prg">
+					<code class="startTime">{{a.FormattedStartTime}}</code> <strong>{{a.Title}}</strong> <span ng-show="a.OriginalTitle.length">("{{a.OriginalTitle}}")</span>
+					<button class="btn btn-primary btn-xs" ng-show="a.Category.length">{{a.Category}}</button>
 				</div>
 			</div>
 		</div>
 	</div>
+
 </body>
 
 </html>
