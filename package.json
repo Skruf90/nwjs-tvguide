@@ -1,7 +1,7 @@
 {
 	"name": "nwjs-tvguide",
 	"version": "1.0.0",
-	"description": "desc",
+	"description": "An simple tv-guide build using Nwjs (Node-webkit)",
 	"main": "index.html",
 	"window": {
 		"toolbar": true
