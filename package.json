@@ -1,7 +1,28 @@
 {
-  "name" : "nw-demo",
-  "main" : "index.html",
-  "window" : {
-    "toolbar" : true
-  }
+	"name": "nwjs-tvguide",
+	"version": "1.0.0",
+	"description": "desc",
+	"main": "index.html",
+	"window": {
+		"toolbar": true
+	},
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/netsi1964/nwjs-tvguide"
+	},
+	"keywords": [
+    "nwjs",
+    "tv-guide",
+    "bootstrap",
+    "angularjs"
+  ],
+	"author": "Sten Hougaard",
+	"license": "MIT",
+	"bugs": {
+		"url": "https://github.com/netsi1964/nwjs-tvguide/issues"
+	},
+	"homepage": "https://github.com/netsi1964/nwjs-tvguide"
 }
