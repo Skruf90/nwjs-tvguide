@@ -70,11 +70,35 @@
 			fetchChannel();
 		});
 
+		var checkCurrent;
+
+		function setCurrent() {
+			var bFound = false;
+			var now = new Date();
+			now = parseFloat(now.getHours() + "." + now.getMinutes());
+			var i = 0;
+			var times = document.querySelectorAll('em');
+			[].forEach.call(times, function (e) {
+				var time = parseFloat(e.innerText.replace(":", "."));
+				e.parentNode.parentNode.style.backgroundColor = "transparent";
+				if (time >= now && !bFound) {
+					var use = times[i - 1];
+					use.parentNode.parentNode.style.backgroundColor = "rgba(0,200,0,.7)";
+					use.scrollIntoView();
+					window.scrollBy(0, -20);
+					bFound = true;
+				};
+				i++;
+			});
+		}
+
 		function fetchChannel() {
 			options.path = "/tv/oversigt/json/guide/schedule?startTimesectionId=1&days=0&channelid=" + ($gs.selectedChannel || "r_999") + "&oneTimesectionOnly=false&mediaType=tv";
 			fetch(options, function (res, resp, options) {
 				$gs.dr = JSON.parse(resp);
 				$gs.$digest();
+				setCurrent();
+				checkCurrent = window.setInterval(setCurrent, 60 * 1000);
 			});
 		}
 	</script>
@@ -84,12 +108,12 @@
 			position: fixed;
 			width: 100%;
 			z-index: 10;
-			top: 0;
+			bottom: -30px;
 			left: 0;
 		}
 		
 		body {
-			padding: 85px 5px;
+			padding: 0 5px 185px 5px;
 		}
 	</style>
 
