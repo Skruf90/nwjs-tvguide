@@ -87,10 +87,21 @@
 			top: 0;
 			left: 0;
 		}
-		body{
+		
+		body {
 			padding: 85px 5px;
 		}
 	</style>
+
+	<script>
+		// https://github.com/nwjs/nw.js/wiki/Window-menu
+		var gui = require('nw.gui');
+		var mb = new gui.Menu({
+			type: "menubar"
+		});
+		mb.createMacBuiltin("nwjs-tvguide");
+		gui.Window.get().menu = mb;
+	</script>
 </head>
 
 <body>
