@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title>TV Guide</title>
+	<link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+	<script src="./angular.js"></script>
+	<script>
+		var $gs;
+		var http = require("http");
+
+
+
+		function reqError(e) {
+			console.log('\n\n==========ERROR==============')
+			console.log('problem with request: ' + e.message);
+		};
+
+		function fetch(options, cbOk, cbErr) {
+			var req = http.request(options, function (res) {
+				var resp = "";
+				res.setEncoding('utf8');
+				res.on('data', function (chunk) {
+					resp += chunk;
+				});
+
+				res.on('end', function (res) {
+					cbOk.call(this, res, resp, options);
+
+				});
+				req.on('error', function (e) {
+					console.log('\n\n==========ERROR==============')
+					console.log('problem with request: ' + e.message);
+				});
+			});
+			// write data to request body
+			req.end();
+		};
+
+
+
+		var dr;
+
+
+		angular.module("myApp", [])
+			.controller("Example", function ($scope, $interval) {
+				$scope.dr = {
+					"name": "Loading"
+				};
+				$scope.channels = {};
+				$scope.selectedChannel = 'w_DR3';
+				$gs = $scope;
+
+				$scope.update = function () {
+					fetchChannel();
+				};
+			});
+
+		var options = {
+			host: 'www.dr.dk',
+			port: 80,
+			path: '/tv/oversigt/json/guide/getuserchannels?limit=50&offset=0&userid=c2e4853d-46ba-4666-8236-2db48f9f750d&mediatype=tv&ran=1540',
+			method: 'GET',
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		};
+		fetch(options, function (res, resp, options) {
+			$gs.channels = JSON.parse(resp);
+			fetchChannel();
+		});
+
+		function fetchChannel() {
+			options.path = "/tv/oversigt/json/guide/schedule?startTimesectionId=1&days=0&channelid=" + ($gs.selectedChannel || "r_999") + "&oneTimesectionOnly=false&mediaType=tv";
+			fetch(options, function (res, resp, options) {
+				$gs.dr = JSON.parse(resp);
+				$gs.$digest();
+			});
+		}
+	</script>
+	<style>
+		.jumbotron {
+			padding: 5px;
+			position: fixed;
+			width: 100%;
+			z-index: 10;
+			top: 0;
+			left: 0;
+		}
+		body{
+			padding: 85px 5px;
+		}
+	</style>
+</head>
+
+<body>
+
+	<div class="container-fluid" ng-app="myApp" ng-controller="Example">
+
+		<div class="jumbotron">
+			<div class="container">
+				<h4><select ng-model="selectedChannel" ng-options="opt.Id as opt.Name for opt in channels.UserChannels" ng-change="update()" class="input-lg">
+		</select><small class="hidden-xs"> - Fetched using node.js in node-webkit</small></h4>
+			</div>
+		</div>
+
+		<div ng-repeat="ts in dr.TimeSection">
+			<div class="col-md-12 col-xs-12" ng-repeat="a in ts.Programs">
+				<div class="col-xs-12">
+					<h6> <em>{{a.FormattedStartTime}}</em>: {{a.Title}} <span ng-show="a.Title!==a.OriginalTitle">(Org:{{a.OriginalTitle}})</span> <small>{{a.Category}}</small></h6>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+
+</html>
